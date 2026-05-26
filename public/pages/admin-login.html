@@ -1,0 +1,75 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Login - MediCare Hospital</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+<div class="login-page">
+  <div class="login-card">
+    <div class="login-icon">🏥</div>
+    <h2>Admin Login</h2>
+    <p>Sign in to access the MediCare admin panel</p>
+    <div class="alert" id="alertBox"></div>
+    <form id="loginForm" novalidate>
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" id="username" class="form-control" placeholder="admin" required />
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="password" class="form-control" placeholder="password" required />
+      </div>
+      <button type="submit" class="btn btn-teal form-submit" id="loginBtn">Sign In</button>
+    </form>
+    <p style="margin-top:1rem; font-size:0.85rem; color:#888;">
+      Default: admin / admin123 | <a href="/" style="color:var(--primary)">Back to Website</a>
+    </p>
+  </div>
+</div>
+<script>
+  fetch('/api/admin/check').then(r=>r.json()).then(data=>{
+    if(data.loggedIn) window.location.href='/pages/admin.html';
+  }).catch(()=>{});
+
+  document.getElementById('loginForm').addEventListener('submit', async function(e){
+    e.preventDefault();
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value.trim();
+    const alertBox = document.getElementById('alertBox');
+    const loginBtn = document.getElementById('loginBtn');
+    if(!username || !password){
+      alertBox.innerHTML='Please enter username and password';
+      alertBox.style.display='block';
+      return;
+    }
+    loginBtn.disabled=true;
+    loginBtn.textContent='Signing in...';
+    alertBox.style.display='none';
+    try{
+      const res = await fetch('/api/admin/login',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({username,password})
+      });
+      const data = await res.json();
+      if(res.ok && data.success){
+        window.location.href='/pages/admin.html';
+      } else {
+        alertBox.innerHTML = data.error || 'Invalid username or password';
+        alertBox.style.display='block';
+        loginBtn.disabled=false;
+        loginBtn.textContent='Sign In';
+      }
+    }catch(err){
+      alertBox.innerHTML='Connection error. Make sure server is running.';
+      alertBox.style.display='block';
+      loginBtn.disabled=false;
+      loginBtn.textContent='Sign In';
+    }
+  });
+</script>
+</body>
+</html>
